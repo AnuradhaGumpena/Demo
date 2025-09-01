@@ -6,10 +6,7 @@ import com.example.employee.dto.EmployeeFilter;
 import jakarta.transaction.Transactional;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -327,49 +324,50 @@ public class EmpDeptRefRepository {
         }*/
 
         if (emp.getEmpdept() != null && !emp.getEmpdept().isEmpty()) {
-            // Step 1: Fetch existing deptIds for this empId in one query
-            String existingSql = "SELECT \"deptId\" FROM \"empDeptRef\" WHERE \"empId\" = :empId";
-            Map<String, Object> param = new HashMap<>();
-            param.put("empId", empId);
-            List<Long> existingDeptIds = namedParameterJdbcTemplate.queryForList(existingSql, param, Long.class);
-            Set<Long> existingDeptSet = new HashSet<>(existingDeptIds);
-            List<EmpDeptRef> insertList = new ArrayList<>();
-            List<EmpDeptRef> updateList = new ArrayList<>();
-            // Step 2: Split into update / insert lists
+
+            // Separate lists for inserts and updates
+            List<SqlParameterSource> insertBatch = new ArrayList<>();
+            List<SqlParameterSource> updateBatch = new ArrayList<>();
+
             for (EmpDeptRef deptRef : emp.getEmpdept()) {
                 deptRef.setEmpId(empId);
+
                 if (deptRef.getCurrentTime() == null) {
                     deptRef.setCurrentTime(LocalDateTime.now());
                 }
-                if (existingDeptSet.contains(deptRef.getDeptId())) {
-                    updateList.add(deptRef);
+
+                BeanPropertySqlParameterSource deptParams = new BeanPropertySqlParameterSource(deptRef);
+
+                if (deptRef.getId() == null) {
+                    insertBatch.add(deptParams);
                 } else {
-                    insertList.add(deptRef);
+                    updateBatch.add(deptParams);
                 }
             }
-            // Step 3: Batch UPDATE
-            if (!updateList.isEmpty()) {
-                String updateSql = "UPDATE \"empDeptRef\" " +
-                        "SET \"orgId\" = :orgId, \"currentTime\" = :currentTime " +
-                        "WHERE \"empId\" = :empId AND \"deptId\" = :deptId";
-                namedParameterJdbcTemplate.batchUpdate(
-                        updateSql,
-                        SqlParameterSourceUtils.createBatch(updateList.toArray())
-                );
-                System.out.println("Batch Updated: " + updateList.size() + " records in empDeptRef");
-            }
-            // Step 4: Batch INSERT
-            if (!insertList.isEmpty()) {
+
+            // INSERT batch
+            if (!insertBatch.isEmpty()) {
                 String insertSql = "INSERT INTO \"empDeptRef\" (\"empId\", \"deptId\", \"orgId\", \"currentTime\") " +
                         "VALUES (:empId, :deptId, :orgId, :currentTime)";
 
-                namedParameterJdbcTemplate.batchUpdate(
-                        insertSql,
-                        SqlParameterSourceUtils.createBatch(insertList.toArray())
-                );
-                System.out.println("Batch Inserted: " + insertList.size() + " records in empDeptRef");
+                namedParameterJdbcTemplate.batchUpdate(insertSql, insertBatch.toArray(new SqlParameterSource[0]));
+                System.out.println("Inserted batch size = " + insertBatch.size());
+            }
+
+            // UPDATE batch
+            if (!updateBatch.isEmpty()) {
+                String updateSql = "UPDATE \"empDeptRef\" " +
+                        "SET \"empId\" = :empId, " +
+                        "\"deptId\" = :deptId, " +
+                        "\"orgId\" = :orgId, " +
+                        "\"currentTime\" = :currentTime " +
+                        "WHERE \"id\" = :id";
+
+                namedParameterJdbcTemplate.batchUpdate(updateSql, updateBatch.toArray(new SqlParameterSource[0]));
+                System.out.println("Updated batch size = " + updateBatch.size());
             }
         }
+
 
 // ========== EmpDesgRef InsertOrUpdate ==========
       /*  if (emp.getEmpdesg() != null) {
@@ -406,48 +404,50 @@ public class EmpDeptRefRepository {
         }*/
 
         if (emp.getEmpdesg() != null && !emp.getEmpdesg().isEmpty()) {
-            // Step 1: Fetch existing desgIds for this empId in one query
-            String existingSql = "SELECT \"desgId\" FROM \"empDesgRef\" WHERE \"empId\" = :empId";
-            Map<String, Object> param = new HashMap<>();
-            param.put("empId", empId);
-            List<Long> existingDesgIds = namedParameterJdbcTemplate.queryForList(existingSql, param, Long.class);
-            Set<Long> existingDesgSet = new HashSet<>(existingDesgIds);
-            List<EmpDesgRef> insertList = new ArrayList<>();
-            List<EmpDesgRef> updateList = new ArrayList<>();
-            // Step 2: Split into update / insert lists
+
+            // Separate lists for inserts and updates
+            List<SqlParameterSource> insertBatch = new ArrayList<>();
+            List<SqlParameterSource> updateBatch = new ArrayList<>();
+
             for (EmpDesgRef desgRef : emp.getEmpdesg()) {
                 desgRef.setEmpId(empId);
+
                 if (desgRef.getCurrentTime() == null) {
                     desgRef.setCurrentTime(LocalDateTime.now());
                 }
-                if (existingDesgSet.contains(desgRef.getDesgId())) {
-                    updateList.add(desgRef);
+
+                BeanPropertySqlParameterSource desgParams = new BeanPropertySqlParameterSource(desgRef);
+
+                if (desgRef.getId() == null) {
+                    insertBatch.add(desgParams);
                 } else {
-                    insertList.add(desgRef);
+                    updateBatch.add(desgParams);
                 }
             }
-            // Step 3: Batch UPDATE
-            if (!updateList.isEmpty()) {
-                String updateSql = "UPDATE \"empDesgRef\" " +
-                        "SET \"orgId\" = :orgId, \"currentTime\" = :currentTime " +
-                        "WHERE \"empId\" = :empId AND \"desgId\" = :desgId";
-                namedParameterJdbcTemplate.batchUpdate(
-                        updateSql,
-                        SqlParameterSourceUtils.createBatch(updateList.toArray())
-                );
-                System.out.println("Batch Updated: " + updateList.size() + " records in empDesgRef");
-            }
-            // Step 4: Batch INSERT
-            if (!insertList.isEmpty()) {
+
+            // INSERT batch
+            if (!insertBatch.isEmpty()) {
                 String insertSql = "INSERT INTO \"empDesgRef\" (\"empId\", \"desgId\", \"orgId\", \"currentTime\") " +
                         "VALUES (:empId, :desgId, :orgId, :currentTime)";
-                namedParameterJdbcTemplate.batchUpdate(
-                        insertSql,
-                        SqlParameterSourceUtils.createBatch(insertList.toArray())
-                );
-                System.out.println("Batch Inserted: " + insertList.size() + " records in empDesgRef");
+
+                namedParameterJdbcTemplate.batchUpdate(insertSql, insertBatch.toArray(new SqlParameterSource[0]));
+                System.out.println("Inserted into empDesgRef batch size = " + insertBatch.size());
+            }
+
+            // UPDATE batch
+            if (!updateBatch.isEmpty()) {
+                String updateSql = "UPDATE \"empDesgRef\" " +
+                        "SET \"empId\" = :empId, " +
+                        "\"desgId\" = :desgId, " +
+                        "\"orgId\" = :orgId, " +
+                        "\"currentTime\" = :currentTime " +
+                        "WHERE \"id\" = :id";
+
+                namedParameterJdbcTemplate.batchUpdate(updateSql, updateBatch.toArray(new SqlParameterSource[0]));
+                System.out.println("Updated empDesgRef batch size = " + updateBatch.size());
             }
         }
+
 
      /*   // ========== EmpDeptRef InsertOrUpdate ==========
         String deptSql = "INSERT INTO \"empDeptRef\" (\"empId\", \"deptId\", \"orgId\", \"currentTime\") " +

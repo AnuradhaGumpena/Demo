@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Schema
 public class EmpDesgRef {
     @Schema(description = "Unique identifier", example = "1")
-    private long id;
+    private Long id;
     @Schema(description = "Unique identifier of the employee", example = "101")
     private long empId;
     @Schema(description = "Unique identifier of the designation", example = "101")
