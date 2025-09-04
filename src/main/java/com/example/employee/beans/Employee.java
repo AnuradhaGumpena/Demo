@@ -20,10 +20,13 @@ public class Employee {
     private LocalDate joiningDate;
     @Schema(description = "Salary of the employee", example = "55000.75")
     private BigDecimal salary;
+    @Schema(description = "List of Employee departments")
     private List<EmpDeptRef> empdept;
+    @Schema(description = "List of Employee designations")
     private List<EmpDesgRef> empdesg;
     @Schema(description = "Unique number", example = "1")
     private long orgId;
+    @Schema(description = "Soft Delete", example = "False")
     private boolean isDeleted;
 
 }

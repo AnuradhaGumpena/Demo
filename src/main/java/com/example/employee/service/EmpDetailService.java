@@ -1,20 +1,18 @@
 package com.example.employee.service;
 
 
-import com.example.employee.beans.Department;
-import com.example.employee.beans.Designation;
 import com.example.employee.beans.Employee;
 import com.example.employee.dto.EmployeeDetailsDto;
 import com.example.employee.dto.EmployeeFilter;
-import com.example.employee.repository.EmpDeptRefRepository;
+import com.example.employee.repository.EmpDetailsRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class EmpDeptRefService {
-    private final EmpDeptRefRepository repository;
-    public EmpDeptRefService (EmpDeptRefRepository repository){
+public class EmpDetailService {
+    private final EmpDetailsRepository repository;
+    public EmpDetailService(EmpDetailsRepository repository){
         this.repository=repository;
     }
     public String createEmployee(Employee emp) {

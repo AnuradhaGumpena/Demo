@@ -13,10 +13,10 @@ public class Department {
     private Long deptId;
     @Schema(description = "Name of the department", example = "Human Resources")
     private String deptNm;
-    @Schema(description = "description for the department", example = "Handles employee relations & payroll")
+    @Schema(description = "Description for the department", example = "Handles employee relations & payroll")
     private String description;
-    @Schema(description = "current time", example = "2025-08-19 11:42:06.981954")
+    @Schema(description = "Current time", example = "2025-08-19 11:42:06.981954")
     private LocalDateTime time;
-
+    @Schema(description = "Soft Delete", example = "False")
     private boolean isDeleted;
 }

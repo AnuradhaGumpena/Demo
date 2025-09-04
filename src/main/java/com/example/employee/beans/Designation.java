@@ -14,7 +14,7 @@ public class Designation {
     private String desgNm;
     @Schema(description = "current time", example = "2025-08-19 11:42:06.981954")
     private LocalDateTime time;
-
+    @Schema(description = "Soft Delete", example = "False")
     private boolean isDeleted;
 
 }

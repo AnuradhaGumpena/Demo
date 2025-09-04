@@ -31,7 +31,7 @@ public class DesignationController {
         return service.getAllDesignations();
     }
 
-    @DeleteMapping("/{desgId}")
+    @PostMapping("/{desgId}")
     public ResponseEntity<String> softDelete(@PathVariable Long desgId) {
         boolean deleted = service.softDeleteDesignation(desgId);
         if (deleted) {

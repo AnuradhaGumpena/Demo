@@ -1,11 +1,9 @@
 package com.example.employee.controller;
 
-import com.example.employee.beans.Department;
 import com.example.employee.beans.Employee;
 import com.example.employee.dto.EmployeeDetailsDto;
 import com.example.employee.dto.EmployeeFilter;
-import com.example.employee.service.EmpDeptRefService;
-import com.example.employee.service.EmployeeService;
+import com.example.employee.service.EmpDetailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,11 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/empDept")
-public class EmpDeptRefController {
+@RequestMapping("/employeedetails")
+public class EmpDetailsController {
 
-    private final  EmpDeptRefService service;
-    public EmpDeptRefController(EmpDeptRefService service) {
+    private final EmpDetailService service;
+    public EmpDetailsController(EmpDetailService service) {
         this.service = service;
     }
 
@@ -31,7 +29,7 @@ public class EmpDeptRefController {
         return service.getEmployeeById(id);
     }
 
-    @DeleteMapping("/{empId}")
+    @PostMapping("/{empId}")
     public ResponseEntity<String> softDelete(@PathVariable Long empId) {
         boolean deleted = service.softDeleteEmployee(empId);
         if (deleted) {

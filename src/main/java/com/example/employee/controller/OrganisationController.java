@@ -32,7 +32,7 @@ public class OrganisationController {
         return service.getAllOrganisations();
     }
 
-    @DeleteMapping("/{orgId}")
+    @PostMapping("/{orgId}")
     public ResponseEntity<String> softDelete(@PathVariable Long orgId) {
         boolean deleted = service.softDeleteOrganisation(orgId);
         if (deleted) {

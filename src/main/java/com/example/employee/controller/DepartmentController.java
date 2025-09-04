@@ -32,7 +32,7 @@ public class DepartmentController {
         return service.getAllDepartments();
     }
 
-    @DeleteMapping("/{deptId}")
+    @PostMapping("/{deptId}")
     public ResponseEntity<String> softDelete(@PathVariable Long deptId) {
         boolean deleted = service.softDeleteDepartment(deptId);
         if (deleted) {

@@ -4,25 +4,20 @@ import com.example.employee.beans.*;
 import com.example.employee.dto.EmployeeDetailsDto;
 import com.example.employee.dto.EmployeeFilter;
 import jakarta.transaction.Transactional;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.jdbc.core.ResultSetExtractor;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Repository
-public class EmpDeptRefRepository {
+public class EmpDetailsRepository {
     //Using NamedParameters
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public EmpDeptRefRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public EmpDetailsRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
@@ -111,7 +106,7 @@ public class EmpDeptRefRepository {
 
     //Using JDBC Template
   /*  private final JdbcTemplate jdbcTemplate;
-    public EmpDeptRefRepository(JdbcTemplate jdbcTemplate) {
+    public EmpDetailsRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
    public long saveEmployee(Employee emp) {
@@ -550,6 +545,47 @@ public class EmpDeptRefRepository {
      return employee;
  }*/
 
+    /*public List<EmployeeDetailsDto> fetchEmployees(EmployeeFilter filter) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT e.\"empId\", e.\"empNm\", e.\"location\", e.\"joiningDate\", e.\"salary\", " +
+                        "e.\"orgId\", o.\"orgNm\", " +
+                        "d.\"deptId\", d.\"deptNm\", " +
+                        "g.\"desgId\", g.\"desgNm\" " +
+                        "FROM employee e " +
+                        "JOIN organisation o ON e.\"orgId\" = o.\"orgId\" " +
+                        "LEFT JOIN \"empDeptRef\" ed ON e.\"empId\" = ed.\"empId\" " +
+                        "LEFT JOIN department d ON ed.\"deptId\" = d.\"deptId\" " +
+                        "LEFT JOIN \"empDesgRef\" eg ON e.\"empId\" = eg.\"empId\" " +
+                        "LEFT JOIN designation g ON eg.\"desgId\" = g.\"desgId\" " +
+                        "WHERE e.\"isDeleted\" = false " +
+                        "AND e.\"orgId\" = :orgId "
+        );
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("orgId", filter.getOrgId());
+
+        // Priority based(apply filter)
+        if (filter.getMinSalary() != null && filter.getMaxSalary() != null) {
+            sql.append(" AND e.\"salary\" BETWEEN :minSalary AND :maxSalary ");
+            params.put("minSalary", filter.getMinSalary());
+            params.put("maxSalary", filter.getMaxSalary());
+        } else if (filter.getJoiningDateFrom() != null && filter.getJoiningDateTo() != null) {
+            sql.append(" AND e.\"joiningDate\" BETWEEN :fromDate AND :toDate ");
+            params.put("fromDate", filter.getJoiningDateFrom());
+            params.put("toDate", filter.getJoiningDateTo());
+//        } else if (filter.getOrgId() != null) {
+//            sql.append(" AND e.\"orgId\" = :orgId ");
+//            params.put("orgId", filter.getOrgId());
+        } else if (filter.getLocation() != null && !filter.getLocation().isEmpty()) {
+            sql.append(" AND e.\"location\" ILIKE :location ");
+            params.put("location", "%" + filter.getLocation() + "%");
+        }
+
+        // Execute query
+        return namedParameterJdbcTemplate.query(sql.toString(), params,
+                new EmployeeDetailsExtractor());
+    }*/
+
     public List<EmployeeDetailsDto> fetchEmployees(EmployeeFilter filter) {
         StringBuilder sql = new StringBuilder(
                 "SELECT e.\"empId\", e.\"empNm\", e.\"location\", e.\"joiningDate\", e.\"salary\", " +
@@ -562,12 +598,14 @@ public class EmpDeptRefRepository {
                         "LEFT JOIN department d ON ed.\"deptId\" = d.\"deptId\" " +
                         "LEFT JOIN \"empDesgRef\" eg ON e.\"empId\" = eg.\"empId\" " +
                         "LEFT JOIN designation g ON eg.\"desgId\" = g.\"desgId\" " +
-                        "WHERE e.\"isDeleted\" = false "
+                        "WHERE e.\"isDeleted\" = false " +
+                        "AND e.\"orgId\" = :orgId "
         );
 
         Map<String, Object> params = new HashMap<>();
+        params.put("orgId", filter.getOrgId());
 
-        // Priority based(apply filter)
+        // Apply filters
         if (filter.getMinSalary() != null && filter.getMaxSalary() != null) {
             sql.append(" AND e.\"salary\" BETWEEN :minSalary AND :maxSalary ");
             params.put("minSalary", filter.getMinSalary());
@@ -576,19 +614,18 @@ public class EmpDeptRefRepository {
             sql.append(" AND e.\"joiningDate\" BETWEEN :fromDate AND :toDate ");
             params.put("fromDate", filter.getJoiningDateFrom());
             params.put("toDate", filter.getJoiningDateTo());
-        } else if (filter.getOrgId() != null) {
-            sql.append(" AND e.\"orgId\" = :orgId ");
-            params.put("orgId", filter.getOrgId());
         } else if (filter.getLocation() != null && !filter.getLocation().isEmpty()) {
             sql.append(" AND e.\"location\" ILIKE :location ");
             params.put("location", "%" + filter.getLocation() + "%");
         }
 
-        // Execute query
-        return namedParameterJdbcTemplate.query(sql.toString(), params,
-                new EmployeeDetailsExtractor());
-    }
+        // Use RowMapper
+        EmployeeDetailsExtractor rowMapper = new EmployeeDetailsExtractor();
+        namedParameterJdbcTemplate.query(sql.toString(), params, rowMapper);
 
+        // Get aggregated employees
+        return rowMapper.getEmployees();
+    }
 
 
 
